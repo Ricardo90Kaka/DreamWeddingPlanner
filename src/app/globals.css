@@ -1,0 +1,332 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8efe6;
+  --background-strong: #fff8f1;
+  --foreground: #2f231d;
+  --muted: #705d54;
+  --card: rgba(255, 252, 248, 0.82);
+  --card-strong: rgba(255, 255, 255, 0.92);
+  --border-soft: rgba(125, 89, 74, 0.16);
+  --accent: #b27763;
+  --accent-strong: #8f5a49;
+  --accent-soft: #ead3c7;
+  --sage: #819080;
+  --shadow-card: 0 24px 70px rgba(93, 58, 43, 0.12);
+  --shadow-soft: 0 10px 30px rgba(93, 58, 43, 0.08);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-manrope);
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    background:
+      radial-gradient(circle at top left, rgba(234, 211, 199, 0.78), transparent 35%),
+      linear-gradient(180deg, #fbf5ee 0%, #f6eadf 100%);
+  }
+
+  body {
+    min-height: 100vh;
+    background: transparent;
+    color: var(--foreground);
+    font-family: var(--font-manrope), sans-serif;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    border: 1px solid var(--border-soft);
+    border-radius: 1.15rem;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 0.95rem 1rem;
+    color: var(--foreground);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      transform 160ms ease;
+  }
+
+  textarea {
+    min-height: 6.5rem;
+    resize: vertical;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: rgba(112, 93, 84, 0.72);
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: rgba(143, 90, 73, 0.65);
+    box-shadow:
+      0 0 0 4px rgba(178, 119, 99, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  }
+
+  summary {
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  ::selection {
+    background: rgba(178, 119, 99, 0.24);
+  }
+}
+
+.app-background {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.app-gradient {
+  position: fixed;
+  z-index: -1;
+  height: 24rem;
+  width: 24rem;
+  border-radius: 9999px;
+  filter: blur(30px);
+  opacity: 0.45;
+}
+
+.app-gradient-left {
+  left: -8rem;
+  top: -6rem;
+  background: rgba(178, 119, 99, 0.3);
+}
+
+.app-gradient-right {
+  right: -7rem;
+  top: 30%;
+  background: rgba(129, 144, 128, 0.22);
+}
+
+.font-display {
+  font-family: var(--font-cormorant), serif;
+}
+
+.surface-card {
+  border: 1px solid var(--border-soft);
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(18px);
+}
+
+.soft-card {
+  border: 1px solid rgba(125, 89, 74, 0.14);
+  background: var(--card-strong);
+  box-shadow: var(--shadow-soft);
+}
+
+.eyebrow {
+  color: var(--accent-strong);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.55rem;
+  color: var(--foreground);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.muted-copy {
+  color: var(--muted);
+}
+
+.button-reset {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0.42rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.status-pill-final {
+  background: rgba(129, 144, 128, 0.12);
+  color: #54614f;
+}
+
+.status-pill-draft {
+  background: rgba(178, 119, 99, 0.12);
+  color: var(--accent-strong);
+}
+
+.status-pill-todo {
+  background: rgba(143, 90, 73, 0.1);
+  color: var(--accent-strong);
+}
+
+.status-pill-done {
+  background: rgba(129, 144, 128, 0.12);
+  color: #536151;
+}
+
+.bottom-safe {
+  padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+}
+
+.nav-safe {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+
+.summary-stat {
+  min-width: 0;
+}
+
+.summary-stat-body {
+  display: flex;
+  min-height: 7.75rem;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.summary-stat-label {
+  min-width: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.summary-stat-money {
+  min-width: 0;
+  white-space: nowrap;
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-stat-value {
+  font-size: clamp(1.45rem, 1.1rem + 1.2vw, 2.35rem);
+}
+
+.planner-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgba(125, 89, 74, 0.14);
+  border-radius: 1.7rem;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--shadow-soft);
+}
+
+.planner-table {
+  width: 100%;
+  min-width: 38rem;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.planner-table th {
+  border-bottom: 1px solid rgba(125, 89, 74, 0.14);
+  background: rgba(255, 248, 241, 0.92);
+  padding: 0.95rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+.planner-table td {
+  border-bottom: 1px solid rgba(125, 89, 74, 0.12);
+  padding: 1rem;
+  vertical-align: top;
+}
+
+.planner-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.planner-table tfoot td {
+  border-top: 1px solid rgba(125, 89, 74, 0.14);
+  background: rgba(255, 248, 241, 0.92);
+  font-weight: 700;
+}
+
+.planner-inline-row td {
+  background: rgba(255, 251, 246, 0.88);
+}
+
+.action-chip {
+  display: inline-flex;
+  min-height: 2.3rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0.55rem 0.95rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.action-chip-primary {
+  background: rgba(143, 90, 73, 0.12);
+  color: var(--accent-strong);
+}
+
+.action-chip-primary:hover {
+  background: rgba(143, 90, 73, 0.18);
+}
+
+.action-chip-secondary {
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--foreground);
+}
+
+.action-chip-secondary:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+.inline-edit-panel {
+  border: 1px dashed rgba(125, 89, 74, 0.2);
+  border-radius: 1.4rem;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 1rem;
+}
