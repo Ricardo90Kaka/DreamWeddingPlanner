@@ -6,7 +6,7 @@ export default async function PlannerLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { user } = await requireAdminUser();
+  await requireAdminUser();
 
-  return <PlannerShell userEmail={user.email}>{children}</PlannerShell>;
+  return <PlannerShell>{children}</PlannerShell>;
 }

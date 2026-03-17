@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { logoutAction } from "@/app/actions";
+import { SubmitButton } from "@/components/submit-button";
 import { requireAdminUser } from "@/lib/auth";
 import { listBudgetItems, listGuests, listTodoItems } from "@/lib/planner";
 import {
@@ -65,6 +67,35 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-5">
+      <section className="surface-card rounded-[2rem] px-5 py-5 sm:px-7">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="eyebrow">Prive planner</p>
+            <h1 className="font-display mt-3 text-4xl leading-none text-[var(--foreground)] sm:text-5xl">
+              Jullie dag, helder gepland.
+            </h1>
+            <p className="muted-copy mt-3 max-w-xl text-sm leading-7 sm:text-base">
+              Een compacte admin-omgeving voor budget, gasten en to-do&apos;s,
+              ontworpen om snel op je telefoon te werken.
+            </p>
+          </div>
+
+          <div className="soft-card rounded-[1.6rem] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--accent-strong)]">
+              Admin
+            </p>
+            <p className="mt-2 max-w-[14rem] break-words text-sm font-medium text-[var(--foreground)]">
+              {user.email ?? "Ingelogd"}
+            </p>
+            <form action={logoutAction} className="mt-4">
+              <SubmitButton variant="ghost" pendingLabel="Uitloggen..." className="w-full">
+                Uitloggen
+              </SubmitButton>
+            </form>
+          </div>
+        </div>
+      </section>
+
       <section className="surface-card rounded-[2rem] p-5 sm:p-6">
         <p className="eyebrow">Dashboard</p>
         <div className="mt-4 flex flex-col gap-4">
