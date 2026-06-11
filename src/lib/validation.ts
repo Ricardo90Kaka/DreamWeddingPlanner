@@ -77,6 +77,9 @@ export const guestSchema = z.object({
   attendanceStatus: z.enum(["yes", "no", "unknown"], {
     message: "Kies een geldige aanwezigheid.",
   }),
+  hotelStatus: z.enum(["single", "double", "no", "unknown"], {
+    message: "Kies een geldige hotelstatus.",
+  }),
   dinnerIncluded: z.boolean(),
   dietaryNotes: z
     .string()

@@ -11,9 +11,9 @@ type SubmitButtonProps = {
 
 const variants = {
   primary:
-    "bg-[var(--accent-strong)] text-white shadow-[0_14px_35px_rgba(143,90,73,0.24)] hover:bg-[#774838]",
+    "bg-[var(--accent-strong)] text-white shadow-[0_14px_35px_rgba(64,90,71,0.24)] hover:bg-[#304638]",
   secondary:
-    "bg-[var(--accent-soft)] text-[var(--accent-strong)] hover:bg-[#e4c7b8]",
+    "bg-[var(--accent-soft)] text-[var(--accent-strong)] hover:bg-[#cfddce]",
   ghost:
     "bg-white/70 text-[var(--foreground)] hover:bg-white",
   danger:

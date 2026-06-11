@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { Square, SquareCheckBig, SquarePen } from "lucide-react";
+import { Minus, Plus, Square, SquareCheckBig, SquarePen } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -23,6 +23,7 @@ type ShoppingListPageProps = {
   searchParams?: Promise<{
     error?: string;
     edit?: string;
+    create?: string;
   }>;
 };
 
@@ -32,73 +33,85 @@ export default async function ShoppingListPage({
   const resolvedSearchParams = (await searchParams) ?? {};
   const { supabase, user } = await requireAdminUser();
   const shoppingItems = await listShoppingItems(supabase, user.id);
-  const activeEditId = resolvedSearchParams.edit ?? null;
+  const isCreating = resolvedSearchParams.create === "1";
+  const activeEditId = isCreating ? null : resolvedSearchParams.edit ?? null;
   const listUrl = "/boodschappenlijst";
+  const createUrl = buildPathWithQuery("/boodschappenlijst", { create: "1" });
   const currentViewUrl = buildPathWithQuery("/boodschappenlijst", { edit: activeEditId });
   const openCount = shoppingItems.filter((item) => !item.checked).length;
 
   return (
-    <div className="space-y-5">
-      <section className="surface-card rounded-[2rem] p-5 sm:p-6">
-        <p className="eyebrow">Boodschappenlijst</p>
-        <h2 className="font-display mt-4 text-4xl leading-none text-[var(--foreground)]">
-          Houd alles wat nog gehaald moet worden overzichtelijk bij
-        </h2>
-        <p className="muted-copy mt-3 text-sm leading-7">
-          Voeg eenvoudig boodschappen toe, vink ze af wanneer ze binnen zijn en
-          pas een item later altijd nog aan.
-        </p>
-
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <article className="soft-card rounded-[1.6rem] p-4">
-            <p className="text-sm font-semibold text-[var(--foreground)]">
-              Nog te halen
-            </p>
-            <p className="summary-stat-value mt-3">{openCount}</p>
-          </article>
-
-          <article className="soft-card rounded-[1.6rem] p-4">
-            <p className="text-sm font-semibold text-[var(--foreground)]">
-              Afgevinkt
-            </p>
-            <p className="summary-stat-value mt-3">
-              {shoppingItems.length - openCount}
-            </p>
-          </article>
+    <section className="surface-card rounded-[2rem] p-5 sm:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="eyebrow">Lijst</p>
+          <h2 className="mt-3 text-2xl font-semibold text-[var(--foreground)]">
+            Alle boodschappenitems
+          </h2>
         </div>
 
-        <div className="mt-6">
-          <ActionNotice message={resolvedSearchParams.error} />
+        <Link
+          href={isCreating ? listUrl : createUrl}
+          scroll={false}
+          className="create-toggle-button"
+        >
+          {isCreating ? (
+            <Minus aria-hidden="true" strokeWidth={2.2} />
+          ) : (
+            <Plus aria-hidden="true" strokeWidth={2.2} />
+          )}
+          <span>{isCreating ? "Sluiten" : "Nieuw boodschappenitem"}</span>
+        </Link>
+      </div>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <article className="soft-card rounded-[1.6rem] p-4">
+          <p className="text-sm font-semibold text-[var(--foreground)]">
+            Nog te halen
+          </p>
+          <p className="summary-stat-value mt-3">{openCount}</p>
+        </article>
+
+        <article className="soft-card rounded-[1.6rem] p-4">
+          <p className="text-sm font-semibold text-[var(--foreground)]">
+            Afgevinkt
+          </p>
+          <p className="summary-stat-value mt-3">
+            {shoppingItems.length - openCount}
+          </p>
+        </article>
+      </div>
+
+      <div className="mt-6">
+        <ActionNotice message={resolvedSearchParams.error} />
+      </div>
+
+      {isCreating ? (
+        <div className="inline-edit-panel mt-4">
+          <form action={createShoppingItemAction} className="space-y-4">
+            <input type="hidden" name="redirectTo" value={listUrl} />
+            <input type="hidden" name="errorRedirectTo" value={createUrl} />
+
+            <div>
+              <label htmlFor="shopping-title" className="field-label">
+                Nieuw item
+              </label>
+              <input
+                id="shopping-title"
+                name="title"
+                placeholder="Bijvoorbeeld bloemenlint, servetten of taartmes"
+                required
+              />
+            </div>
+
+            <SubmitButton pendingLabel="Item opslaan..." className="w-full sm:w-auto">
+              Item toevoegen
+            </SubmitButton>
+          </form>
         </div>
+      ) : null}
 
-        <form action={createShoppingItemAction} className="mt-4 space-y-4">
-          <input type="hidden" name="redirectTo" value={listUrl} />
-
-          <div>
-            <label htmlFor="shopping-title" className="field-label">
-              Nieuw item
-            </label>
-            <input
-              id="shopping-title"
-              name="title"
-              placeholder="Bijvoorbeeld bloemenlint, servetten of taartmes"
-              required
-            />
-          </div>
-
-          <SubmitButton pendingLabel="Item opslaan..." className="w-full">
-            Item toevoegen
-          </SubmitButton>
-        </form>
-      </section>
-
-      <section className="surface-card rounded-[2rem] p-5 sm:p-6">
-        <p className="eyebrow">Lijst</p>
-        <h3 className="mt-3 text-2xl font-semibold text-[var(--foreground)]">
-          Alle boodschappenitems
-        </h3>
-
-        <div className="mt-6">
+      <div className="mt-6">
           {shoppingItems.length > 0 ? (
             <div className="planner-table-wrap">
               <table className="planner-table">
@@ -242,8 +255,7 @@ export default async function ShoppingListPage({
               </p>
             </div>
           )}
-        </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }

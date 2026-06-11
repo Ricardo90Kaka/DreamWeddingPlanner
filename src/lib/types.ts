@@ -1,4 +1,5 @@
 export type AttendanceStatus = "yes" | "no" | "unknown";
+export type HotelStatus = "single" | "double" | "no" | "unknown";
 export type VendorKey =
   | "trouwlocatie"
   | "fotograaf"
@@ -42,6 +43,7 @@ export type Guest = {
   id: string;
   name: string;
   attendanceStatus: AttendanceStatus;
+  hotelStatus: HotelStatus;
   dinnerIncluded: boolean;
   dietaryNotes: string;
   createdAt: string;

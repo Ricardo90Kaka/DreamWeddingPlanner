@@ -242,6 +242,7 @@ export async function createGuestAction(formData: FormData) {
   const parsed = guestSchema.safeParse({
     name: normaliseText(formData.get("name")),
     attendanceStatus: normaliseText(formData.get("attendanceStatus")),
+    hotelStatus: normaliseText(formData.get("hotelStatus")),
     dinnerIncluded: getBooleanValue(formData.get("dinnerIncluded")),
     dietaryNotes: normaliseText(formData.get("dietaryNotes")),
   });
@@ -254,6 +255,7 @@ export async function createGuestAction(formData: FormData) {
     user_id: user.id,
     name: parsed.data.name,
     attendance_status: parsed.data.attendanceStatus,
+    hotel_status: parsed.data.hotelStatus,
     dinner_included: parsed.data.dinnerIncluded,
     dietary_notes: parsed.data.dietaryNotes,
   });
@@ -278,6 +280,7 @@ export async function updateGuestAction(formData: FormData) {
   const parsed = guestSchema.safeParse({
     name: normaliseText(formData.get("name")),
     attendanceStatus: normaliseText(formData.get("attendanceStatus")),
+    hotelStatus: normaliseText(formData.get("hotelStatus")),
     dinnerIncluded: getBooleanValue(formData.get("dinnerIncluded")),
     dietaryNotes: normaliseText(formData.get("dietaryNotes")),
   });
@@ -291,6 +294,7 @@ export async function updateGuestAction(formData: FormData) {
     .update({
       name: parsed.data.name,
       attendance_status: parsed.data.attendanceStatus,
+      hotel_status: parsed.data.hotelStatus,
       dinner_included: parsed.data.dinnerIncluded,
       dietary_notes: parsed.data.dietaryNotes,
     })

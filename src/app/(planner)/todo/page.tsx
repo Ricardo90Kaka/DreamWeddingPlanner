@@ -27,6 +27,7 @@ type TodoPageProps = {
     error?: string;
     edit?: string;
     note?: string;
+    create?: string;
   }>;
 };
 
@@ -34,9 +35,12 @@ export default async function TodoPage({ searchParams }: TodoPageProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
   const { supabase, user } = await requireAdminUser();
   const todoItems = await listTodoItems(supabase, user.id);
-  const activeNoteId = resolvedSearchParams.note ?? null;
-  const activeEditId = activeNoteId ? null : resolvedSearchParams.edit ?? null;
+  const isCreating = resolvedSearchParams.create === "1";
+  const activeNoteId = isCreating ? null : resolvedSearchParams.note ?? null;
+  const activeEditId =
+    isCreating || activeNoteId ? null : resolvedSearchParams.edit ?? null;
   const listUrl = "/todo";
+  const createUrl = buildPathWithQuery("/todo", { create: "1" });
   const currentViewUrl = buildPathWithQuery("/todo", {
     edit: activeEditId,
     note: activeNoteId,
@@ -44,74 +48,84 @@ export default async function TodoPage({ searchParams }: TodoPageProps) {
   const openTodoCount = todoItems.filter((item) => !item.completed).length;
 
   return (
-    <div className="space-y-5">
-      <section className="surface-card rounded-[2rem] p-5 sm:p-6">
-        <p className="eyebrow">To-do</p>
-        <h2 className="font-display mt-4 text-4xl leading-none text-[var(--foreground)]">
-          Houd de laatste acties compact en zichtbaar
-        </h2>
-        <p className="muted-copy mt-3 text-sm leading-7">
-          Open taken blijven bovenaan staan zodat je vanaf je telefoon direct
-          ziet wat nog aandacht nodig heeft.
-        </p>
-
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <article className="soft-card rounded-[1.6rem] p-4">
-            <p className="text-sm font-semibold text-[var(--foreground)]">
-              Open taken
-            </p>
-            <p className="summary-stat-value mt-3">{openTodoCount}</p>
-          </article>
-
-          <article className="soft-card rounded-[1.6rem] p-4">
-            <p className="text-sm font-semibold text-[var(--foreground)]">
-              Afgerond
-            </p>
-            <p className="summary-stat-value mt-3">
-              {todoItems.length - openTodoCount}
-            </p>
-          </article>
+    <section className="surface-card rounded-[2rem] p-5 sm:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="eyebrow">Lijst</p>
+          <h2 className="mt-3 text-2xl font-semibold text-[var(--foreground)]">
+            Taken op volgorde van aandacht
+          </h2>
         </div>
 
-        <div className="mt-6">
-          <ActionNotice message={resolvedSearchParams.error} />
+        <Link
+          href={isCreating ? listUrl : createUrl}
+          scroll={false}
+          className="create-toggle-button"
+        >
+          {isCreating ? (
+            <Minus aria-hidden="true" strokeWidth={2.2} />
+          ) : (
+            <Plus aria-hidden="true" strokeWidth={2.2} />
+          )}
+          <span>{isCreating ? "Sluiten" : "Nieuwe taak"}</span>
+        </Link>
+      </div>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <article className="soft-card rounded-[1.6rem] p-4">
+          <p className="text-sm font-semibold text-[var(--foreground)]">
+            Open taken
+          </p>
+          <p className="summary-stat-value mt-3">{openTodoCount}</p>
+        </article>
+
+        <article className="soft-card rounded-[1.6rem] p-4">
+          <p className="text-sm font-semibold text-[var(--foreground)]">
+            Afgerond
+          </p>
+          <p className="summary-stat-value mt-3">
+            {todoItems.length - openTodoCount}
+          </p>
+        </article>
+      </div>
+
+      <div className="mt-6">
+        <ActionNotice message={resolvedSearchParams.error} />
+      </div>
+
+      {isCreating ? (
+        <div className="inline-edit-panel mt-4">
+          <form action={createTodoAction} className="space-y-4">
+            <input type="hidden" name="redirectTo" value={listUrl} />
+            <input type="hidden" name="errorRedirectTo" value={createUrl} />
+
+            <div>
+              <label htmlFor="todo-title" className="field-label">
+                Nieuwe taak
+              </label>
+              <input
+                id="todo-title"
+                name="title"
+                placeholder="Bijvoorbeeld proefmenu bevestigen"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="todo-due-date" className="field-label">
+                Deadline
+              </label>
+              <input id="todo-due-date" name="dueDate" type="date" />
+            </div>
+
+            <SubmitButton pendingLabel="Taak opslaan..." className="w-full sm:w-auto">
+              Taak toevoegen
+            </SubmitButton>
+          </form>
         </div>
+      ) : null}
 
-        <form action={createTodoAction} className="mt-4 space-y-4">
-          <input type="hidden" name="redirectTo" value={listUrl} />
-
-          <div>
-            <label htmlFor="todo-title" className="field-label">
-              Nieuwe taak
-            </label>
-            <input
-              id="todo-title"
-              name="title"
-              placeholder="Bijvoorbeeld proefmenu bevestigen"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="todo-due-date" className="field-label">
-              Deadline
-            </label>
-            <input id="todo-due-date" name="dueDate" type="date" />
-          </div>
-
-          <SubmitButton pendingLabel="Taak opslaan..." className="w-full">
-            Taak toevoegen
-          </SubmitButton>
-        </form>
-      </section>
-
-      <section className="surface-card rounded-[2rem] p-5 sm:p-6">
-        <p className="eyebrow">Lijst</p>
-        <h3 className="mt-3 text-2xl font-semibold text-[var(--foreground)]">
-          Taken op volgorde van aandacht
-        </h3>
-
-        <div className="mt-6">
+      <div className="mt-6">
           {todoItems.length > 0 ? (
             <div className="planner-table-wrap">
               <table className="planner-table">
@@ -325,8 +339,7 @@ export default async function TodoPage({ searchParams }: TodoPageProps) {
               </p>
             </div>
           )}
-        </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }

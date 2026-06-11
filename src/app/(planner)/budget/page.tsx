@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { SquarePen } from "lucide-react";
+import { Minus, Plus, SquarePen } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -31,6 +31,7 @@ type BudgetPageProps = {
     status?: string;
     error?: string;
     edit?: string;
+    create?: string;
   }>;
 };
 
@@ -41,7 +42,8 @@ export default async function BudgetPage({ searchParams }: BudgetPageProps) {
   const budgetFilter = getBudgetFilter(resolvedSearchParams.status);
   const budgetTotals = getBudgetTotals(budgetItems);
   const totalBudget = getBudgetGrandTotal(budgetItems);
-  const activeEditId = resolvedSearchParams.edit ?? null;
+  const isCreating = resolvedSearchParams.create === "1";
+  const activeEditId = isCreating ? null : resolvedSearchParams.edit ?? null;
   const visibleItems = budgetItems.filter((item) => {
     if (budgetFilter === "final") {
       return item.isFinal;
@@ -58,6 +60,10 @@ export default async function BudgetPage({ searchParams }: BudgetPageProps) {
 
   const baseStatus = budgetFilter === "all" ? null : budgetFilter;
   const listUrl = buildPathWithQuery("/budget", { status: baseStatus });
+  const createUrl = buildPathWithQuery("/budget", {
+    status: baseStatus,
+    create: "1",
+  });
   const getEditUrl = (id: string) =>
     buildPathWithQuery("/budget", { status: baseStatus, edit: id });
 
@@ -76,128 +82,134 @@ export default async function BudgetPage({ searchParams }: BudgetPageProps) {
   ];
 
   return (
-    <div className="space-y-5">
-      <section className="surface-card rounded-[2rem] p-5 sm:p-6">
-        <p className="eyebrow">Budget</p>
-        <h2 className="font-display mt-4 text-4xl leading-none text-[var(--foreground)]">
-          Wat staat vast en wat blijft nog open?
-        </h2>
-        <p className="muted-copy mt-3 text-sm leading-7">
-          Voeg per onderwerp een bedrag toe en markeer direct of het budget al
-          definitief is, nog kan schuiven en hoeveel er al is aanbetaald.
-        </p>
-
-        <div className="mt-6">
-          <ActionNotice message={resolvedSearchParams.error} />
+    <section className="surface-card rounded-[2rem] p-5 sm:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="eyebrow">Lijst</p>
+          <h2 className="mt-3 text-2xl font-semibold text-[var(--foreground)]">
+            Alle budgetonderdelen
+          </h2>
         </div>
 
-        <form action={createBudgetItemAction} className="mt-4 space-y-4">
-          <input type="hidden" name="redirectTo" value={listUrl} />
+        <Link
+          href={isCreating ? listUrl : createUrl}
+          scroll={false}
+          className="create-toggle-button"
+        >
+          {isCreating ? (
+            <Minus aria-hidden="true" strokeWidth={2.2} />
+          ) : (
+            <Plus aria-hidden="true" strokeWidth={2.2} />
+          )}
+          <span>{isCreating ? "Sluiten" : "Nieuw budgetitem"}</span>
+        </Link>
+      </div>
 
-          <div>
-            <label htmlFor="budget-title" className="field-label">
-              Onderwerp
+      <div className="mt-4 flex flex-wrap gap-2">
+        {filterLinks.map((filterLink) => (
+          <Link
+            key={filterLink.href}
+            href={filterLink.href}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              filterLink.active
+                ? "bg-[var(--accent-strong)] text-white"
+                : "bg-white/75 text-[var(--foreground)] hover:bg-white"
+            }`}
+          >
+            {filterLink.label}
+          </Link>
+        ))}
+      </div>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <article className="soft-card summary-stat rounded-[1.4rem] p-4">
+          <p className="text-sm font-semibold text-[var(--foreground)]">Definitief</p>
+          <p className="summary-stat-value mt-2">{formatEuroFromCents(budgetTotals.final)}</p>
+        </article>
+        <article className="soft-card summary-stat rounded-[1.4rem] p-4">
+          <p className="text-sm font-semibold text-[var(--foreground)]">Voorlopig</p>
+          <p className="summary-stat-value mt-2">
+            {formatEuroFromCents(budgetTotals.tentative)}
+          </p>
+        </article>
+        <article className="soft-card summary-stat rounded-[1.4rem] p-4">
+          <p className="text-sm font-semibold text-[var(--foreground)]">Totaal</p>
+          <p className="summary-stat-value mt-2">{formatEuroFromCents(totalBudget)}</p>
+        </article>
+      </div>
+
+      <div className="mt-6">
+        <ActionNotice message={resolvedSearchParams.error} />
+      </div>
+
+      {isCreating ? (
+        <div className="inline-edit-panel mt-4">
+          <form action={createBudgetItemAction} className="space-y-4">
+            <input type="hidden" name="redirectTo" value={listUrl} />
+            <input type="hidden" name="errorRedirectTo" value={createUrl} />
+
+            <div>
+              <label htmlFor="budget-title" className="field-label">
+                Onderwerp
+              </label>
+              <input
+                id="budget-title"
+                name="title"
+                placeholder="Bijvoorbeeld locatie, bloemen of fotograaf"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="budget-amount" className="field-label">
+                Budget in euro
+              </label>
+              <input
+                id="budget-amount"
+                name="amount"
+                type="number"
+                inputMode="numeric"
+                min="0"
+                step="1"
+                placeholder="1500"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="budget-amount-paid" className="field-label">
+                Aanbetaald in euro
+              </label>
+              <input
+                id="budget-amount-paid"
+                name="amountPaid"
+                type="number"
+                inputMode="numeric"
+                min="0"
+                step="1"
+                placeholder="0"
+              />
+            </div>
+
+            <label className="soft-card flex cursor-pointer items-center gap-3 rounded-[1.4rem] px-4 py-4">
+              <input
+                name="isFinal"
+                type="checkbox"
+                className="h-5 w-5 shrink-0 rounded-md border border-[var(--border-soft)] accent-[var(--accent-strong)]"
+              />
+              <span className="text-sm font-medium text-[var(--foreground)]">
+                Dit budget is definitief
+              </span>
             </label>
-            <input
-              id="budget-title"
-              name="title"
-              placeholder="Bijvoorbeeld locatie, bloemen of fotograaf"
-              required
-            />
-          </div>
 
-          <div>
-            <label htmlFor="budget-amount" className="field-label">
-              Budget in euro
-            </label>
-            <input
-              id="budget-amount"
-              name="amount"
-              type="number"
-              inputMode="numeric"
-              min="0"
-              step="1"
-              placeholder="1500"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="budget-amount-paid" className="field-label">
-              Aanbetaald in euro
-            </label>
-            <input
-              id="budget-amount-paid"
-              name="amountPaid"
-              type="number"
-              inputMode="numeric"
-              min="0"
-              step="1"
-              placeholder="0"
-            />
-          </div>
-
-          <label className="soft-card flex cursor-pointer items-center gap-3 rounded-[1.4rem] px-4 py-4">
-            <input
-              name="isFinal"
-              type="checkbox"
-              className="h-5 w-5 shrink-0 rounded-md border border-[var(--border-soft)] accent-[var(--accent-strong)]"
-            />
-            <span className="text-sm font-medium text-[var(--foreground)]">
-              Dit budget is definitief
-            </span>
-          </label>
-
-          <SubmitButton pendingLabel="Budgetitem opslaan..." className="w-full">
-            Budgetitem toevoegen
-          </SubmitButton>
-        </form>
-      </section>
-
-      <section className="surface-card rounded-[2rem] p-5 sm:p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="eyebrow">Lijst</p>
-            <h3 className="mt-3 text-2xl font-semibold text-[var(--foreground)]">
-              Alle budgetonderdelen
-            </h3>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {filterLinks.map((filterLink) => (
-              <Link
-                key={filterLink.href}
-                href={filterLink.href}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  filterLink.active
-                    ? "bg-[var(--accent-strong)] text-white"
-                    : "bg-white/75 text-[var(--foreground)] hover:bg-white"
-                }`}
-              >
-                {filterLink.label}
-              </Link>
-            ))}
-          </div>
+            <SubmitButton pendingLabel="Budgetitem opslaan..." className="w-full sm:w-auto">
+              Budgetitem toevoegen
+            </SubmitButton>
+          </form>
         </div>
+      ) : null}
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          <article className="soft-card summary-stat rounded-[1.4rem] p-4">
-            <p className="text-sm font-semibold text-[var(--foreground)]">Definitief</p>
-            <p className="summary-stat-value mt-2">{formatEuroFromCents(budgetTotals.final)}</p>
-          </article>
-          <article className="soft-card summary-stat rounded-[1.4rem] p-4">
-            <p className="text-sm font-semibold text-[var(--foreground)]">Voorlopig</p>
-            <p className="summary-stat-value mt-2">
-              {formatEuroFromCents(budgetTotals.tentative)}
-            </p>
-          </article>
-          <article className="soft-card summary-stat rounded-[1.4rem] p-4">
-            <p className="text-sm font-semibold text-[var(--foreground)]">Totaal</p>
-            <p className="summary-stat-value mt-2">{formatEuroFromCents(totalBudget)}</p>
-          </article>
-        </div>
-
-        <div className="mt-6">
+      <div className="mt-6">
           {visibleItems.length > 0 ? (
             <div className="planner-table-wrap">
               <table className="planner-table">
@@ -378,13 +390,12 @@ export default async function BudgetPage({ searchParams }: BudgetPageProps) {
                 Nog geen budgetonderdelen zichtbaar
               </p>
               <p className="muted-copy mt-2 text-sm leading-7">
-                Voeg links je eerste onderwerp toe, of wissel van filter als je
+                Voeg je eerste onderwerp toe, of wissel van filter als je
                 alleen definitieve of voorlopige posten wilt bekijken.
               </p>
             </div>
           )}
-        </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }

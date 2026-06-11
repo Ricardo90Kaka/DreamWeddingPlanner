@@ -7,6 +7,7 @@ import type {
   BudgetItem,
   Guest,
   GuestSort,
+  HotelStatus,
   ShoppingItem,
   SortDirection,
   TodoItem,
@@ -187,6 +188,22 @@ export function sortGuests(
 export function formatAttendanceStatus(status: AttendanceStatus) {
   if (status === "yes") {
     return "Ja";
+  }
+
+  if (status === "no") {
+    return "Nee";
+  }
+
+  return "Onbekend";
+}
+
+export function formatHotelStatus(status: HotelStatus) {
+  if (status === "single") {
+    return "1 persoons";
+  }
+
+  if (status === "double") {
+    return "2 persoons";
   }
 
   if (status === "no") {

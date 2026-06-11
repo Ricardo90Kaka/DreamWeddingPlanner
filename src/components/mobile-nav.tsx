@@ -17,7 +17,7 @@ export function MobileNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 sm:px-6">
-      <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 rounded-[1.9rem] border border-white/55 bg-[rgba(255,250,245,0.92)] px-2 py-2 shadow-[0_20px_45px_rgba(95,57,44,0.16)] backdrop-blur-xl">
+      <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 rounded-[1.9rem] border border-white/70 bg-[rgba(255,254,251,0.94)] px-2 py-2 shadow-[0_20px_45px_rgba(49,74,56,0.15)] backdrop-blur-xl">
         {navItems.map((item) => {
           const active = pathname === item.href;
           const Icon = item.icon;
@@ -29,7 +29,7 @@ export function MobileNav() {
               aria-label={item.label}
               title={item.label}
               className={`flex min-w-0 flex-1 items-center justify-center rounded-[1.4rem] px-2 py-2 transition ${
-                active ? "bg-[rgba(143,90,73,0.12)]" : "hover:bg-white/70"
+                active ? "bg-[rgba(64,90,71,0.12)]" : "hover:bg-white/80"
               }`}
             >
               <span

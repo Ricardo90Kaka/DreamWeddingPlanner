@@ -46,6 +46,7 @@ function mapGuest(record: {
   id: string;
   name: string;
   attendance_status: "yes" | "no" | "unknown";
+  hotel_status: "single" | "double" | "no" | "unknown";
   dinner_included: boolean;
   dietary_notes: string;
   created_at: string;
@@ -55,6 +56,7 @@ function mapGuest(record: {
     id: record.id,
     name: record.name,
     attendanceStatus: record.attendance_status,
+    hotelStatus: record.hotel_status,
     dinnerIncluded: record.dinner_included,
     dietaryNotes: record.dietary_notes ?? "",
     createdAt: record.created_at,
@@ -114,7 +116,9 @@ export async function listBudgetItems(supabase: PlannerClient, userId: string) {
 export async function listGuests(supabase: PlannerClient, userId: string) {
   const { data, error } = await supabase
     .from("guests")
-    .select("id, name, attendance_status, dinner_included, dietary_notes, created_at, updated_at")
+    .select(
+      "id, name, attendance_status, hotel_status, dinner_included, dietary_notes, created_at, updated_at",
+    )
     .eq("user_id", userId);
 
   assertQuerySucceeded(error, "gasten");

@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { SquarePen } from "lucide-react";
+import { Minus, Plus, SquarePen } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -15,6 +15,7 @@ import { listGuests } from "@/lib/planner";
 import {
   buildPathWithQuery,
   formatAttendanceStatus,
+  formatHotelStatus,
   getGuestSort,
   getNextSortDirection,
   getSortDirection,
@@ -31,6 +32,7 @@ type GuestsPageProps = {
     sort?: string;
     direction?: string;
     edit?: string;
+    create?: string;
   }>;
 };
 
@@ -41,12 +43,22 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
   const currentSort = getGuestSort(resolvedSearchParams.sort);
   const currentDirection = getSortDirection(resolvedSearchParams.direction);
   const sortedGuests = sortGuests(guests, currentSort, currentDirection);
-  const activeEditId = resolvedSearchParams.edit ?? null;
+  const isCreating = resolvedSearchParams.create === "1";
+  const activeEditId = isCreating ? null : resolvedSearchParams.edit ?? null;
   const dinnerGuests = guests.filter((guest) => guest.dinnerIncluded).length;
   const dietaryGuests = guests.filter((guest) => guest.dietaryNotes).length;
+  const hotelBookings = guests.filter(
+    (guest) =>
+      guest.hotelStatus === "single" || guest.hotelStatus === "double",
+  ).length;
   const listUrl = buildPathWithQuery("/gasten", {
     sort: currentSort,
     direction: currentDirection,
+  });
+  const createUrl = buildPathWithQuery("/gasten", {
+    sort: currentSort,
+    direction: currentDirection,
+    create: "1",
   });
   const getEditUrl = (id: string) =>
     buildPathWithQuery("/gasten", {
@@ -62,104 +74,137 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
   ];
 
   return (
-    <div className="space-y-5">
-      <section className="surface-card rounded-[2rem] p-5 sm:p-6">
-        <p className="eyebrow">Gasten</p>
-        <h2 className="font-display mt-4 text-4xl leading-none text-[var(--foreground)]">
-          Houd diner en dieetwensen overzichtelijk bij
-        </h2>
-        <p className="muted-copy mt-3 text-sm leading-7">
-          Voeg gasten toe en noteer per persoon meteen of hun aanwezigheid al
-          bekend is, of ze mee eten en of er dieetwensen zijn.
-        </p>
-
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <article className="soft-card rounded-[1.6rem] p-4">
-            <p className="text-sm font-semibold text-[var(--foreground)]">
-              Gasten op diner
-            </p>
-            <p className="summary-stat-value mt-3">
-              {dinnerGuests}/{guests.length}
-            </p>
-          </article>
-
-          <article className="soft-card rounded-[1.6rem] p-4">
-            <p className="text-sm font-semibold text-[var(--foreground)]">
-              Met dieetwens
-            </p>
-            <p className="summary-stat-value mt-3">{dietaryGuests}</p>
-          </article>
+    <section className="surface-card rounded-[2rem] p-5 sm:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="eyebrow">Lijst</p>
+          <h2 className="mt-3 text-2xl font-semibold text-[var(--foreground)]">
+            Gastenlijst
+          </h2>
         </div>
 
-        <div className="mt-6">
-          <ActionNotice message={resolvedSearchParams.error} />
+        <Link
+          href={isCreating ? listUrl : createUrl}
+          scroll={false}
+          className="create-toggle-button"
+        >
+          {isCreating ? (
+            <Minus aria-hidden="true" strokeWidth={2.2} />
+          ) : (
+            <Plus aria-hidden="true" strokeWidth={2.2} />
+          )}
+          <span>{isCreating ? "Sluiten" : "Nieuwe gast"}</span>
+        </Link>
+      </div>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <article className="soft-card rounded-[1.6rem] p-4">
+          <p className="text-sm font-semibold text-[var(--foreground)]">
+            Gasten op diner
+          </p>
+          <p className="summary-stat-value mt-3">
+            {dinnerGuests}/{guests.length}
+          </p>
+        </article>
+
+        <article className="soft-card rounded-[1.6rem] p-4">
+          <p className="text-sm font-semibold text-[var(--foreground)]">
+            Met dieetwens
+          </p>
+          <p className="summary-stat-value mt-3">{dietaryGuests}</p>
+        </article>
+
+        <article className="soft-card rounded-[1.6rem] p-4">
+          <p className="text-sm font-semibold text-[var(--foreground)]">
+            Hotelboekingen
+          </p>
+          <p className="summary-stat-value mt-3">{hotelBookings}</p>
+        </article>
+      </div>
+
+      <div className="mt-6">
+        <ActionNotice message={resolvedSearchParams.error} />
+      </div>
+
+      {isCreating ? (
+        <div className="inline-edit-panel mt-4">
+          <form action={createGuestAction} className="space-y-4">
+            <input type="hidden" name="redirectTo" value={listUrl} />
+            <input type="hidden" name="errorRedirectTo" value={createUrl} />
+
+            <div>
+              <label htmlFor="guest-name" className="field-label">
+                Naam van de gast
+              </label>
+              <input
+                id="guest-name"
+                name="name"
+                placeholder="Bijvoorbeeld Sophie de Vries"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="guest-attendance-status" className="field-label">
+                Aanwezig
+              </label>
+              <select
+                id="guest-attendance-status"
+                name="attendanceStatus"
+                defaultValue="unknown"
+              >
+                <option value="yes">Ja</option>
+                <option value="no">Nee</option>
+                <option value="unknown">Onbekend</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="guest-hotel-status" className="field-label">
+                Hotel
+              </label>
+              <select
+                id="guest-hotel-status"
+                name="hotelStatus"
+                defaultValue="unknown"
+              >
+                <option value="single">1 persoons</option>
+                <option value="double">2 persoons</option>
+                <option value="no">Nee</option>
+                <option value="unknown">Onbekend</option>
+              </select>
+            </div>
+
+            <label className="soft-card flex cursor-pointer items-center gap-3 rounded-[1.4rem] px-4 py-4">
+              <input
+                name="dinnerIncluded"
+                type="checkbox"
+                className="h-5 w-5 shrink-0 rounded-md border border-[var(--border-soft)] accent-[var(--accent-strong)]"
+              />
+              <span className="text-sm font-medium text-[var(--foreground)]">
+                Deze gast schuift aan bij het diner
+              </span>
+            </label>
+
+            <div>
+              <label htmlFor="guest-dietary-notes" className="field-label">
+                Dieetwensen of opmerkingen
+              </label>
+              <textarea
+                id="guest-dietary-notes"
+                name="dietaryNotes"
+                placeholder="Bijvoorbeeld vegetarisch, glutenvrij of allergie voor noten"
+              />
+            </div>
+
+            <SubmitButton pendingLabel="Gast opslaan..." className="w-full sm:w-auto">
+              Gast toevoegen
+            </SubmitButton>
+          </form>
         </div>
+      ) : null}
 
-        <form action={createGuestAction} className="mt-4 space-y-4">
-          <input type="hidden" name="redirectTo" value={listUrl} />
-
-          <div>
-            <label htmlFor="guest-name" className="field-label">
-              Naam van de gast
-            </label>
-            <input
-              id="guest-name"
-              name="name"
-              placeholder="Bijvoorbeeld Sophie de Vries"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="guest-attendance-status" className="field-label">
-              Aanwezig
-            </label>
-            <select
-              id="guest-attendance-status"
-              name="attendanceStatus"
-              defaultValue="unknown"
-            >
-              <option value="yes">Ja</option>
-              <option value="no">Nee</option>
-              <option value="unknown">Onbekend</option>
-            </select>
-          </div>
-
-          <label className="soft-card flex cursor-pointer items-center gap-3 rounded-[1.4rem] px-4 py-4">
-            <input
-              name="dinnerIncluded"
-              type="checkbox"
-              className="h-5 w-5 shrink-0 rounded-md border border-[var(--border-soft)] accent-[var(--accent-strong)]"
-            />
-            <span className="text-sm font-medium text-[var(--foreground)]">
-              Deze gast schuift aan bij het diner
-            </span>
-          </label>
-
-          <div>
-            <label htmlFor="guest-dietary-notes" className="field-label">
-              Dieetwensen of opmerkingen
-            </label>
-            <textarea
-              id="guest-dietary-notes"
-              name="dietaryNotes"
-              placeholder="Bijvoorbeeld vegetarisch, glutenvrij of allergie voor noten"
-            />
-          </div>
-
-          <SubmitButton pendingLabel="Gast opslaan..." className="w-full">
-            Gast toevoegen
-          </SubmitButton>
-        </form>
-      </section>
-
-      <section className="surface-card rounded-[2rem] p-5 sm:p-6">
-        <p className="eyebrow">Lijst</p>
-        <h3 className="mt-3 text-2xl font-semibold text-[var(--foreground)]">
-          Gastenlijst
-        </h3>
-
-        <div className="mt-6">
+      <div className="mt-6">
           {sortedGuests.length > 0 ? (
             <div className="planner-table-wrap">
               <table className="planner-table">
@@ -196,6 +241,7 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
                       );
                     })}
                     <th>Aanwezig</th>
+                    <th>Hotel</th>
                     <th>Acties</th>
                   </tr>
                 </thead>
@@ -234,6 +280,20 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
                             </span>
                           </td>
                           <td>
+                            <span
+                              className={`status-pill ${
+                                guest.hotelStatus === "single" ||
+                                guest.hotelStatus === "double"
+                                  ? "status-pill-final"
+                                  : guest.hotelStatus === "no"
+                                    ? "status-pill-draft"
+                                    : "status-pill-done"
+                              }`}
+                            >
+                              {formatHotelStatus(guest.hotelStatus)}
+                            </span>
+                          </td>
+                          <td>
                             {isEditing ? (
                               <Link
                                 href={listUrl}
@@ -258,7 +318,7 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
 
                         {isEditing ? (
                           <tr className="planner-inline-row">
-                            <td colSpan={5}>
+                            <td colSpan={6}>
                               <div className="inline-edit-panel">
                                 <form action={updateGuestAction} className="space-y-4">
                                   <input type="hidden" name="id" value={guest.id} />
@@ -290,6 +350,25 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
                                       defaultValue={guest.attendanceStatus}
                                     >
                                       <option value="yes">Ja</option>
+                                      <option value="no">Nee</option>
+                                      <option value="unknown">Onbekend</option>
+                                    </select>
+                                  </div>
+
+                                  <div>
+                                    <label
+                                      className="field-label"
+                                      htmlFor={`guest-hotel-${guest.id}`}
+                                    >
+                                      Hotel
+                                    </label>
+                                    <select
+                                      id={`guest-hotel-${guest.id}`}
+                                      name="hotelStatus"
+                                      defaultValue={guest.hotelStatus}
+                                    >
+                                      <option value="single">1 persoons</option>
+                                      <option value="double">2 persoons</option>
                                       <option value="no">Nee</option>
                                       <option value="unknown">Onbekend</option>
                                     </select>
@@ -352,13 +431,12 @@ export default async function GuestsPage({ searchParams }: GuestsPageProps) {
                 Nog geen gasten toegevoegd
               </p>
               <p className="muted-copy mt-2 text-sm leading-7">
-                Voeg links de eerste gast toe om dinerkeuzes en dieetwensen te
+                Voeg de eerste gast toe om dinerkeuzes en dieetwensen te
                 gaan bijhouden.
               </p>
             </div>
           )}
-        </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }

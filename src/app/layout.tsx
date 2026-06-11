@@ -30,11 +30,7 @@ export default function RootLayout({
   return (
     <html lang="nl">
       <body className={`${manrope.variable} ${cormorant.variable} font-sans antialiased`}>
-        <div className="app-background">
-          <div className="app-gradient app-gradient-left" />
-          <div className="app-gradient app-gradient-right" />
-          {children}
-        </div>
+        <div className="app-background">{children}</div>
       </body>
     </html>
   );

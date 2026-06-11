@@ -41,17 +41,17 @@ export default async function DashboardPage() {
     {
       label: "Definitief budget",
       value: formatEuroFromCents(budgetTotals.final),
-      tone: "bg-[rgba(129,144,128,0.14)] text-[#536151]",
+      tone: "bg-[rgba(129,150,123,0.18)] text-[#405a47]",
     },
     {
       label: "Voorlopig budget",
       value: formatEuroFromCents(budgetTotals.tentative),
-      tone: "bg-[rgba(178,119,99,0.14)] text-[var(--accent-strong)]",
+      tone: "bg-[rgba(221,231,220,0.72)] text-[#52675a]",
     },
     {
       label: "Totaal budget",
       value: formatEuroFromCents(totalBudget),
-      tone: "bg-[rgba(143,90,73,0.12)] text-[var(--foreground)]",
+      tone: "bg-[rgba(64,90,71,0.12)] text-[var(--foreground)]",
     },
     {
       label: "Gasten op diner",
@@ -61,7 +61,7 @@ export default async function DashboardPage() {
     {
       label: "Open taken",
       value: `${openTodos.length}`,
-      tone: "bg-[#fff0ea] text-[#8d4034]",
+      tone: "bg-[#eef3eb] text-[#405a47]",
     },
   ];
 
